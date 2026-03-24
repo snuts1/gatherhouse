@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lake Norman House Picker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      background: #0f1e2e;
+    }
+
+    /* ── Map ── */
+    #map { flex: 1; height: 100%; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 380px;
+      height: 100%;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+      box-shadow: -6px 0 24px rgba(0,0,0,0.35);
+      position: relative;
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    /* ── Carousel ── */
+    .carousel {
+      position: relative;
+      height: 240px;
+      background: #0f1e2e;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .carousel-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .carousel-img.active { opacity: 1; }
+
+    .no-photo {
+      height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.25);
+      font-size: 13px; letter-spacing: 0.5px;
+    }
+
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.45); color: #fff; border: none;
+      width: 34px; height: 34px; border-radius: 50%;
+      cursor: pointer; font-size: 20px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10; transition: background 0.15s;
+    }
+    .carousel-btn:hover { background: rgba(0,0,0,0.75); }
+    .carousel-btn.prev { left: 10px; }
+    .carousel-btn.next { right: 10px; }
+    .carousel-btn.hidden { display: none; }
+
+    .photo-count {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.55); color: #fff;
+      padding: 3px 9px; border-radius: 12px; font-size: 11px;
+      z-index: 10;
+    }
+
+    .carousel-dots {
+      position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 5px; z-index: 10;
+    }
+    .carousel-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(255,255,255,0.4); cursor: pointer; transition: background 0.2s;
+    }
+    .carousel-dot.active { background: #fff; }
+
+    .close-btn {
+      position: absolute; top: 10px; left: 10px; z-index: 20;
+      background: rgba(0,0,0,0.5); color: #fff; border: none;
+      width: 30px; height: 30px; border-radius: 50%;
+      cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .close-btn:hover { background: rgba(0,0,0,0.8); }
+
+    /* ── Sidebar content ── */
+    .sidebar-content {
+      padding: 18px 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .listing-title {
+      font-size: 18px; font-weight: 700; color: #0f1e2e;
+      line-height: 1.3; margin-bottom: 10px;
+    }
+
+    .listing-price {
+      font-size: 22px; font-weight: 700; color: #1a7f4b;
+      margin-bottom: 4px;
+    }
+    .listing-price .per-night { font-size: 13px; font-weight: 400; color: #999; }
+
+    .listing-meta {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      color: #666; font-size: 13px; margin-bottom: 16px;
+      margin-top: 6px;
+    }
+    .listing-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .listing-notes {
+      background: #f4f7fb;
+      border-left: 3px solid #4a9fd4;
+      padding: 10px 13px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px; color: #444; line-height: 1.5;
+      margin-bottom: 16px; white-space: pre-wrap;
+    }
+    .listing-notes.hidden { display: none; }
+
+    .view-btn {
+      display: block; width: 100%;
+      padding: 11px; background: #4a9fd4; color: #fff;
+      text-align: center; text-decoration: none;
+      border-radius: 8px; font-weight: 600; font-size: 14px;
+      margin-bottom: 20px; transition: background 0.2s;
+    }
+    .view-btn:hover { background: #2a7fbf; }
+
+    /* ── Star Rating ── */
+    .rating-section {
+      border-top: 1px solid #eee;
+      padding-top: 18px;
+    }
+
+    .rating-label {
+      font-size: 11px; font-weight: 700; color: #aaa;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 10px;
+    }
+
+    #stars {
+      display: flex; gap: 3px; margin-bottom: 10px;
+      user-select: none; cursor: pointer;
+    }
+
+    .star { width: 34px; height: 34px; flex-shrink: 0; }
+    .star svg { display: block; }
+
+    .rating-display {
+      display: flex; align-items: baseline; gap: 8px;
+    }
+    .rating-number {
+      font-size: 30px; font-weight: 700; color: #0f1e2e;
+      min-width: 44px;
+    }
+    .rating-denom { font-size: 14px; color: #bbb; }
+
+    .clear-rating {
+      font-size: 12px; color: #bbb; cursor: pointer;
+      text-decoration: underline; margin-top: 8px;
+      display: inline-block;
+    }
+    .clear-rating:hover { color: #e74c3c; }
+    .clear-rating.hidden { display: none; }
+
+    /* ── Map markers ── */
+    .price-marker {
+      background: #0f1e2e; color: #fff;
+      padding: 5px 9px; border-radius: 6px;
+      font-size: 12px; font-weight: 700;
+      white-space: nowrap; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      position: relative; display: flex; align-items: center; gap: 5px;
+      transition: transform 0.1s;
+    }
+    .price-marker::after {
+      content: '';
+      position: absolute; bottom: -6px; left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: #0f1e2e;
+    }
+    .price-marker.rated {
+      background: #1a7f4b;
+    }
+    .price-marker.rated::after { border-top-color: #1a7f4b; }
+    .price-marker.active {
+      background: #4a9fd4;
+      transform: scale(1.08);
+    }
+    .price-marker.active::after { border-top-color: #4a9fd4; }
+    .marker-stars-strip {
+      display: flex;
+      gap: 1px;
+      background: #4a9fd4;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
+    /* ── POI markers ── */
+    .poi-marker {
+      background: #c0392b; color: #fff;
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      font-size: 16px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      position: relative;
+    }
+    .poi-marker::after {
+      content: '';
+      position: absolute; bottom: -6px; left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: #c0392b;
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 6px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+    }
+    .leaflet-popup-content {
+      margin: 8px 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px; font-weight: 600; color: #0f1e2e;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+      body { position: relative; }
+      #sidebar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        width: 100%; height: 72vh;
+        transform: translateY(100%);
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -6px 24px rgba(0,0,0,0.35);
+      }
+      #sidebar.open { transform: translateY(0); }
+      .carousel { height: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="sidebar">
+  <div class="carousel" id="carousel">
+    <div class="no-photo" id="no-photo">No photos added yet</div>
+    <button class="close-btn" onclick="closeSidebar()" title="Close">&#x2715;</button>
+    <button class="carousel-btn prev hidden" id="prev-btn" onclick="photoNav(-1)">&#8249;</button>
+    <button class="carousel-btn next hidden" id="next-btn" onclick="photoNav(1)">&#8250;</button>
+    <div class="photo-count" id="photo-count" style="display:none"></div>
+    <div class="carousel-dots" id="carousel-dots"></div>
+  </div>
+
+  <div class="sidebar-content">
+    <div class="listing-title" id="listing-title"></div>
+    <div class="listing-price" id="listing-price"></div>
+    <div class="listing-meta" id="listing-meta"></div>
+    <div class="listing-notes" id="listing-notes"></div>
+    <a class="view-btn" id="view-btn" href="#" target="_blank" rel="noopener noreferrer">
+      View Listing &#8599;
+    </a>
+
+    <div class="rating-section">
+      <div class="rating-label">Your Rating</div>
+      <div id="stars"></div>
+      <div class="rating-display">
+        <div class="rating-number" id="rating-number">&#8212;</div>
+        <div class="rating-denom" id="rating-denom"></div>
+      </div>
+      <div class="clear-rating hidden" id="clear-rating" onclick="clearRating()">clear rating</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="listings.js"></script>
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const BOUNDS = L.latLngBounds([[35.3952, -81.0873], [35.7733, -80.7523]]);
+const STORAGE_KEY = 'housepicker-ratings';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentListing = null;
+let photoIndex = 0;
+let ratings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+const markerRefs = {}; // id -> L.marker
+
+// ── Map ────────────────────────────────────────────────────────────────────
+const map = L.map('map', {
+  maxBounds: BOUNDS.pad(0.05),
+  maxBoundsViscosity: 0.85,
+  minZoom: 10,
+}).fitBounds(BOUNDS);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 19,
+}).addTo(map);
+
+// ── Markers ────────────────────────────────────────────────────────────────
+function miniStarSVG(fill) {
+  const pts = '12,2.5 14.9,8.3 21.5,9.2 16.75,13.8 17.9,20.3 12,17.3 6.1,20.3 7.25,13.8 2.5,9.2 9.1,8.3';
+  const gold = '#f0a500';
+  const empty = 'rgba(255,255,255,0.3)';
+  if (fill === 1) {
+    return `<svg viewBox="0 0 24 24" width="10" height="10"><polygon points="${pts}" fill="${gold}"/></svg>`;
+  }
+  if (fill === 0.5) {
+    const id = `msh${++svgUid}`;
+    return `<svg viewBox="0 0 24 24" width="10" height="10">
+      <defs><clipPath id="${id}"><rect x="0" y="0" width="12" height="24"/></clipPath></defs>
+      <polygon points="${pts}" fill="${empty}"/>
+      <polygon points="${pts}" fill="${gold}" clip-path="url(#${id})"/>
+    </svg>`;
+  }
+  return `<svg viewBox="0 0 24 24" width="10" height="10"><polygon points="${pts}" fill="${empty}"/></svg>`;
+}
+
+function makeMarkerIcon(listing, isActive) {
+  const r = ratings[listing.id];
+  const rated = r !== undefined && r !== null;
+  let cls = 'price-marker';
+  if (isActive) cls += ' active';
+  else if (rated) cls += ' rated';
+
+  const priceStr = (listing.pricePerPerson ? `$${listing.pricePerPerson}` : '?')
+    + (listing.boat ? ' ⛵' : '');
+
+  let html;
+  if (rated) {
+    const starsHtml = [0,1,2,3,4].map(i => miniStarSVG(getStarFill(r, i))).join('');
+    html = `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div class="marker-stars-strip">${starsHtml}</div>
+      <div class="${cls}">${priceStr}</div>
+    </div>`;
+  } else {
+    html = `<div class="${cls}">${priceStr}</div>`;
+  }
+
+  return L.divIcon({
+    className: '',
+    html,
+    iconAnchor: [0, rated ? 49 : 36],
+    iconSize: null,
+  });
+}
+
+function updateMarkerIcon(listing, isActive) {
+  const marker = markerRefs[listing.id];
+  if (marker) marker.setIcon(makeMarkerIcon(listing, isActive));
+}
+
+LISTINGS.forEach(listing => {
+  const marker = L.marker([listing.lat, listing.lng], {
+    icon: makeMarkerIcon(listing, false),
+  }).addTo(map);
+
+  marker.on('click', () => openListing(listing));
+  markerRefs[listing.id] = marker;
+});
+
+// ── POI Markers ────────────────────────────────────────────────────────────
+const poiIcon = L.divIcon({
+  className: '',
+  html: '<div class="poi-marker">!</div>',
+  iconAnchor: [14, 34],
+  iconSize: null,
+});
+
+POIS.forEach(poi => {
+  L.marker([poi.lat, poi.lng], { icon: poiIcon })
+    .addTo(map)
+    .bindPopup(poi.name, { closeButton: false, offset: [0, -6] });
+});
+
+// ── Sidebar open/close ─────────────────────────────────────────────────────
+function openListing(listing) {
+  if (currentListing) updateMarkerIcon(currentListing, false);
+  currentListing = listing;
+  updateMarkerIcon(listing, true);
+
+  // Photos
+  const photos = listing.photos || [];
+  photoIndex = 0;
+  renderCarousel(photos);
+
+  // Text
+  document.getElementById('listing-title').textContent = listing.title;
+
+  const priceEl = document.getElementById('listing-price');
+  if (listing.pricePerPerson) {
+    priceEl.innerHTML = `$${listing.pricePerPerson.toLocaleString()} <span class="per-night">/ person</span>`;
+  } else {
+    priceEl.textContent = '';
+  }
+
+  const metaParts = [];
+  if (listing.bedrooms) metaParts.push(`&#127968; ${listing.bedrooms} bd`);
+  if (listing.bathrooms) metaParts.push(`&#128701; ${listing.bathrooms} ba`);
+  if (listing.boat) metaParts.push(`⛵ boat included`);
+  if (listing.vrboRating) {
+    const reviews = listing.reviewCount ? ` (${listing.reviewCount})` : '';
+    metaParts.push(`&#11088; ${listing.vrboRating}${reviews}`);
+  }
+  document.getElementById('listing-meta').innerHTML = metaParts.map(p => `<span>${p}</span>`).join('');
+
+  const notesEl = document.getElementById('listing-notes');
+  if (listing.notes) {
+    notesEl.textContent = listing.notes;
+    notesEl.classList.remove('hidden');
+  } else {
+    notesEl.classList.add('hidden');
+  }
+
+  const viewBtn = document.getElementById('view-btn');
+  viewBtn.href = listing.url || '#';
+  viewBtn.textContent = listing.url ? 'View Listing \u2197' : 'No link yet';
+
+  // Rating
+  renderStars(ratings[listing.id] ?? null);
+
+  document.getElementById('sidebar').classList.add('open');
+}
+
+function closeSidebar() {
+  if (currentListing) {
+    updateMarkerIcon(currentListing, false);
+    currentListing = null;
+  }
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ── Carousel ───────────────────────────────────────────────────────────────
+function renderCarousel(photos) {
+  const carousel = document.getElementById('carousel');
+
+  // Remove old images
+  carousel.querySelectorAll('.carousel-img').forEach(el => el.remove());
+
+  const noPhoto = document.getElementById('no-photo');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const countEl = document.getElementById('photo-count');
+  const dotsEl = document.getElementById('carousel-dots');
+  dotsEl.innerHTML = '';
+
+  if (!photos.length) {
+    noPhoto.style.display = 'flex';
+    prevBtn.classList.add('hidden');
+    nextBtn.classList.add('hidden');
+    countEl.style.display = 'none';
+    return;
+  }
+
+  noPhoto.style.display = 'none';
+  countEl.style.display = photos.length > 1 ? 'block' : 'none';
+
+  photos.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.className = 'carousel-img' + (i === 0 ? ' active' : '');
+    img.src = src;
+    img.alt = '';
+    carousel.appendChild(img);
+
+    if (photos.length > 1) {
+      const dot = document.createElement('div');
+      dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+      dot.onclick = () => goToPhoto(i);
+      dotsEl.appendChild(dot);
+    }
+  });
+
+  updateCarouselNav(photos.length);
+}
+
+function updateCarouselNav(total) {
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const countEl = document.getElementById('photo-count');
+
+  if (total <= 1) {
+    prevBtn.classList.add('hidden');
+    nextBtn.classList.add('hidden');
+    return;
+  }
+  prevBtn.classList.toggle('hidden', photoIndex === 0);
+  nextBtn.classList.toggle('hidden', photoIndex === total - 1);
+  countEl.textContent = `${photoIndex + 1} / ${total}`;
+}
+
+function goToPhoto(index) {
+  const imgs = document.querySelectorAll('.carousel-img');
+  const dots = document.querySelectorAll('.carousel-dot');
+  if (!imgs.length) return;
+
+  imgs[photoIndex].classList.remove('active');
+  if (dots[photoIndex]) dots[photoIndex].classList.remove('active');
+
+  photoIndex = index;
+  imgs[photoIndex].classList.add('active');
+  if (dots[photoIndex]) dots[photoIndex].classList.add('active');
+
+  updateCarouselNav(imgs.length);
+}
+
+function photoNav(dir) {
+  const imgs = document.querySelectorAll('.carousel-img');
+  const next = photoIndex + dir;
+  if (next < 0 || next >= imgs.length) return;
+  goToPhoto(next);
+}
+
+// ── Star Rating ────────────────────────────────────────────────────────────
+// Scale: 1–10, displayed as 5 stars with half-star precision
+// star i: left half = i*2+1, right half = i*2+2
+
+let svgUid = 0;
+
+function starSVG(fill) {
+  // fill: 0 = empty, 0.5 = half, 1 = full
+  const pts = '12,2.5 14.9,8.3 21.5,9.2 16.75,13.8 17.9,20.3 12,17.3 6.1,20.3 7.25,13.8 2.5,9.2 9.1,8.3';
+  const gold = '#f0a500';
+  const grey = '#ddd';
+
+  if (fill === 1) {
+    return `<svg viewBox="0 0 24 24" width="34" height="34">
+      <polygon points="${pts}" fill="${gold}" stroke="${gold}" stroke-width="0.3"/>
+    </svg>`;
+  }
+  if (fill === 0.5) {
+    const id = `sh${++svgUid}`;
+    return `<svg viewBox="0 0 24 24" width="34" height="34">
+      <defs><clipPath id="${id}"><rect x="0" y="0" width="12" height="24"/></clipPath></defs>
+      <polygon points="${pts}" fill="${grey}" stroke="${grey}" stroke-width="0.3"/>
+      <polygon points="${pts}" fill="${gold}" stroke="${gold}" stroke-width="0.3" clip-path="url(#${id})"/>
+    </svg>`;
+  }
+  return `<svg viewBox="0 0 24 24" width="34" height="34">
+    <polygon points="${pts}" fill="${grey}" stroke="${grey}" stroke-width="0.3"/>
+  </svg>`;
+}
+
+function getStarFill(rating, starIdx) {
+  if (rating === null || rating === undefined) return 0;
+  const base = starIdx * 2; // star 0 covers 1–2, star 1 covers 3–4, etc.
+  if (rating >= base + 2) return 1;
+  if (rating >= base + 1) return 0.5;
+  return 0;
+}
+
+function renderStarsForValue(rating) {
+  const container = document.getElementById('stars');
+  container.querySelectorAll('.star').forEach((star, i) => {
+    star.innerHTML = starSVG(getStarFill(rating, i));
+  });
+}
+
+function renderStars(rating) {
+  const container = document.getElementById('stars');
+  container.innerHTML = '';
+
+  for (let i = 0; i < 5; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.dataset.index = i;
+    star.innerHTML = starSVG(getStarFill(rating, i));
+    container.appendChild(star);
+  }
+
+  // Delegation on container — attach once per open
+  container.onmousemove = (e) => {
+    const star = e.target.closest('.star');
+    if (!star) return;
+    const i = parseInt(star.dataset.index);
+    const rect = star.getBoundingClientRect();
+    const isRight = (e.clientX - rect.left) >= rect.width / 2;
+    renderStarsForValue(i * 2 + (isRight ? 2 : 1));
+  };
+
+  container.onmouseleave = () => {
+    const saved = currentListing ? (ratings[currentListing.id] ?? null) : null;
+    renderStarsForValue(saved);
+  };
+
+  container.onclick = (e) => {
+    const star = e.target.closest('.star');
+    if (!star || !currentListing) return;
+    const i = parseInt(star.dataset.index);
+    const rect = star.getBoundingClientRect();
+    const isRight = (e.clientX - rect.left) >= rect.width / 2;
+    const val = i * 2 + (isRight ? 2 : 1);
+    setRating(currentListing.id, val);
+  };
+
+  renderRatingValue(rating);
+}
+
+function renderRatingValue(rating) {
+  const numEl = document.getElementById('rating-number');
+  const denomEl = document.getElementById('rating-denom');
+  const clearEl = document.getElementById('clear-rating');
+
+  if (rating !== null && rating !== undefined) {
+    numEl.textContent = rating;
+    denomEl.textContent = '/ 10';
+    clearEl.classList.remove('hidden');
+  } else {
+    numEl.innerHTML = '&#8212;';
+    denomEl.textContent = '';
+    clearEl.classList.add('hidden');
+  }
+}
+
+function setRating(id, value) {
+  ratings[id] = value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ratings));
+  renderStarsForValue(value);
+  renderRatingValue(value);
+  const listing = LISTINGS.find(l => l.id === id);
+  if (listing) updateMarkerIcon(listing, listing === currentListing);
+}
+
+function clearRating() {
+  if (!currentListing) return;
+  delete ratings[currentListing.id];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ratings));
+  renderStarsForValue(null);
+  renderRatingValue(null);
+  updateMarkerIcon(currentListing, true);
+}
+
+// Close sidebar when clicking map
+map.on('click', closeSidebar);
+</script>
+</body>
+</html>
