@@ -186,5 +186,27 @@ const LISTINGS = [
       'photos/lake/3.avif',
       'photos/lake/4.avif'
     ],
+  },
+  {
+    id: 'winnar',
+    title: 'Winnar',
+    lat: 35.58075502406549,
+    lng: -80.91671357921153,
+    pricePerPerson: 444,
+    bedrooms: 7,
+    bathrooms: 3,
+    boat: false,
+    vrboRating: 10,
+    reviewCount: 17,
+    url: 'https://www.airbnb.com/rooms/1478231250284773529?unique_share_id=6c5d60bf-c8d0-47b8-9933-f9f73f8de7c3&viralityEntryPoint=1&s=76&source_impression_id=p3_1774533356_P305tzECULA0qU2p',
+    notes: 'BYO Boat',
+    photos: [
+      'photos/winnar/1.avif',
+      'photos/winnar/2.avif',
+      'photos/winnar/3.avif',
+      'photos/winnar/4.avif',
+      'photos/winnar/5.avif'
+    ],
   }
+  
 ];
