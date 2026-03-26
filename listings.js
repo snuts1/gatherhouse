@@ -140,11 +140,11 @@ const LISTINGS = [
     url: 'https://www.vrbo.com/3764851?regionId=6187666&chkin=2026-05-21&chkout=2026-05-24&useRewards=false&adults=7',
     notes: '',
     photos: [
-      'photos/space/1.avif',
-      'photos/space/2.avif',
-      'photos/space/3.avif',
-      'photos/space/4.webp',
-      'photos/space/5.avif'
+      'photos/new/1.avif',
+      'photos/new/2.avif',
+      'photos/new/3.avif',
+      'photos/new/4.webp',
+      'photos/new/5.avif'
     ],
   },
   {
@@ -161,10 +161,10 @@ const LISTINGS = [
     url: 'https://www.vrbo.com/3753142?regionId=6187666&chkin=2026-05-21&chkout=2026-05-24&useRewards=false&adults=7',
     notes: '',
     photos: [
-      'photos/space/1.avif',
-      'photos/space/2.avif',
-      'photos/space/3.webp',
-      'photos/space/5.webp'
+      'photos/frame/1.avif',
+      'photos/frame/2.avif',
+      'photos/frame/3.webp',
+      'photos/frame/5.webp'
     ],
   },
   {
@@ -181,10 +181,10 @@ const LISTINGS = [
     url: 'https://www.vrbo.com/1607710?regionId=6187666&chkin=2026-05-21&chkout=2026-05-24&useRewards=false&adults=7',
     notes: 'not sure about boat!',
     photos: [
-      'photos/space/1.avif',
-      'photos/space/2.avif',
-      'photos/space/3.webp',
-      'photos/space/4.avif'
+      'photos/lake/1.avif',
+      'photos/lake/2.avif',
+      'photos/lake/3.webp',
+      'photos/lake/4.avif'
     ],
   }
 ];
