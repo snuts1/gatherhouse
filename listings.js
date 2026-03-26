@@ -27,7 +27,9 @@ const POIS = [
   { name: 'Taco Bell', lat: 35.6698478725909, lng:-80.85277766 },
   { name: 'Harris Teeter', lat: 35.6030517561649, lng:-80.89504137582 },
   { name: 'Food Lion', lat: 35.7117889469875, lng:-80.894176491 },
-  { name: 'Hello Sailor gay bar', lat: 35.48760833011383, lng: -80.88821834556445}
+  { name: 'Hello Sailor straight bar', lat: 35.48760833011383, lng: -80.88821834556445},
+  { name: 'CS Boat Rental', lat: 35.60301575614529, lng: -80.92970561915192},
+  { name: 'Lake Effects Boat Rental', lat: 35.60209585243213, lng: -80.95020014526717}
 ];
 
 // ── Listings ───────────────────────────────────────────────────────────────
