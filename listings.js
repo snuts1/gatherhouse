@@ -29,7 +29,10 @@ const POIS = [
   { name: 'Food Lion', lat: 35.7117889469875, lng:-80.894176491 },
   { name: 'Hello Sailor straight bar', lat: 35.48760833011383, lng: -80.88821834556445},
   { name: 'CS Boat Rental', lat: 35.60301575614529, lng: -80.92970561915192},
-  { name: 'Lake Effects Boat Rental', lat: 35.60209585243213, lng: -80.95020014526717}
+  { name: 'Lake Effects Boat Rental', lat: 35.60209585243213, lng: -80.95020014526717},
+  { name: 'Food Dog', lat: 35.570576239086385, lng: -80.90119021254812},
+  { name: 'Publix', lat: 35.58206140395289, lng: -80.87479719852334},
+  { name: 'Close Teeter', lat: 35.58547116020093, lng: -80.87616788874524} 
 ];
 
 // ── Listings ───────────────────────────────────────────────────────────────
