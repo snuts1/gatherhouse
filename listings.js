@@ -182,8 +182,8 @@ const LISTINGS = [
     notes: 'not sure about boat!',
     photos: [
       'photos/lake/1.avif',
-      'photos/lake/2.avif',
-      'photos/lake/3.webp',
+      'photos/lake/2.webp',
+      'photos/lake/3.avif',
       'photos/lake/4.avif'
     ],
   }
