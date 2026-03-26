@@ -125,5 +125,66 @@ const LISTINGS = [
       'photos/space/3.avif',
       'photos/space/4.avif'
     ],
+  },
+  {
+    id: 'new',
+    title: 'new Boi',
+    lat: 35.5943812273032,
+    lng: -80.9213972958422,
+    pricePerPerson: 559,
+    bedrooms: 4,
+    bathrooms: 3,
+    boat: false,
+    vrboRating: 10,
+    reviewCount: 1,
+    url: 'https://www.vrbo.com/3764851?regionId=6187666&chkin=2026-05-21&chkout=2026-05-24&useRewards=false&adults=7',
+    notes: '',
+    photos: [
+      'photos/space/1.avif',
+      'photos/space/2.avif',
+      'photos/space/3.avif',
+      'photos/space/4.webp',
+      'photos/space/5.avif'
+    ],
+  },
+  {
+    id: 'frame',
+    title: 'Frame of Mind',
+    lat: 35.6398218956267,
+    lng: -80.9567775133676,
+    pricePerPerson: 468,
+    bedrooms: 4,
+    bathrooms: 3,
+    boat: false,
+    vrboRating: 10,
+    reviewCount: 12,
+    url: 'https://www.vrbo.com/3753142?regionId=6187666&chkin=2026-05-21&chkout=2026-05-24&useRewards=false&adults=7',
+    notes: '',
+    photos: [
+      'photos/space/1.avif',
+      'photos/space/2.avif',
+      'photos/space/3.webp',
+      'photos/space/5.webp'
+    ],
+  },
+  {
+    id: 'lake',
+    title: 'Lake Front Retreat',
+    lat: 35.5886522026477,
+    lng: -80.954385490594,
+    pricePerPerson: 550,
+    bedrooms: 6,
+    bathrooms: 3,
+    boat: true,
+    vrboRating: 10,
+    reviewCount: 41,
+    url: 'https://www.vrbo.com/1607710?regionId=6187666&chkin=2026-05-21&chkout=2026-05-24&useRewards=false&adults=7',
+    notes: 'not sure about boat!',
+    photos: [
+      'photos/space/1.avif',
+      'photos/space/2.avif',
+      'photos/space/3.webp',
+      'photos/space/4.avif'
+    ],
   }
 ];
