@@ -34,7 +34,7 @@ const POIS = [
 
 // ── Listings ───────────────────────────────────────────────────────────────
 const LISTINGS = [
-  {
+  /*{
     id: 'lux',
     title: 'Luxurious & Private',
     lat: 35.610714,
@@ -188,7 +188,7 @@ const LISTINGS = [
       'photos/lake/3.avif',
       'photos/lake/4.avif'
     ],
-  },
+  },*/
   {
     id: 'winnar',
     title: 'Winnar',
